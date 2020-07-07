@@ -1,0 +1,37 @@
+---
+- name: Write facts to files
+  copy: 
+    content: "{{ ansible_facts | to_nice_json }}"
+    dest: "{{ playbook_dir }}/../facts/facts_{{ ansible_hostname }}.json"
+  delegate_to: localhost
+  changed_when: false
+
+- name: Generate host-overview
+  template:
+    src: "network.yml.j2"
+    dest: "{{ playbook_dir }}/../facts/network.{{ network.domain }}.yml"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  become: no
+  changed_when: false
+
+- name: Copy SSH-Host-Files
+  template:
+    src: "host_label.csv.j2"
+    dest: "{{ default_path.data_path }}/{{ ansible_hostname }}.csv"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  become: no
+  changed_when: false
+
+- name: Generate Label-File
+  template:
+    src: "host_label.csv.j2"
+    dest: "{{ label_directory }}host_label.csv"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+  become: no
+  changed_when: false

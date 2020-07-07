@@ -1,0 +1,49 @@
+hosts:
+{% for host in hw_device_inventory %}
+  {{ host }}:
+    device:              '{{ (hw_device_inventory[host]['vendor'] + " " + hw_device_inventory[host]['type']) | trim }}'
+    description:         '{{ hw_device_inventory[host]['description']}}'
+{% if hw_device_inventory[host]['connect']|length > 0 %}
+    connection:
+{% for connector in hw_device_inventory[host]['connect'] %}
+      - '{{ connector }}'
+{% endfor %}
+{% endif %}
+    domain:
+{% set domains = [] %}
+{% for interface in dhcp_config %}
+{% if interface['dev_name'] == host %}
+{% if interface['fqhn_domain'] not in domains %}{{ domains.append(interface['fqhn_domain']) }}{% endif %}
+{% for domain in dns_config %}
+{% if interface['fqhn_domain'] in domain['forwarded'] %}
+{% if domain['fqhn_domain'] not in domains %}{{ domains.append(domain['fqhn_domain']) }}{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% for domain in domains | sort | unique %}
+      - '{{ domain }}'
+{% endfor %}
+{% set interfaces = namespace(eth=0, wlan=0, bluetooth=0) %}
+    network:
+{% for interface in dhcp_config %}
+{% if interface['dev_name'] == host %}
+      {{ interface['connection'] }}{{ interfaces[interface['connection']] }}:
+        ip_address:      '{{ interface['ip_address'] }}'
+        domain:          '{{ interface['fqhn_domain'] }}'
+        mac_address:     '{{ interface['mac_address'] }}'
+{% if interface['connection'] == "eth" %}
+        connection_type: 'RJ45 Ethernet'
+{% set interfaces.eth = interfaces.eth + 1 %}
+{% endif %}
+{% if interface['connection'] == "wlan" %}
+        connection_type: 'Wireless LAN'
+{% set interfaces.wlan = interfaces.wlan + 1 %}
+{% endif %}
+{% if interface['connection'] == "bluetooth" %}
+        connection_type: 'Bluetooth'
+{% set interfaces.bluetooth = interfaces.bluetooth + 1 %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endfor %}

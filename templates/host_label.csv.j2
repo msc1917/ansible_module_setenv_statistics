@@ -1,0 +1,4 @@
+hosts, host_name, host_number, needs_label, inventory, type, description, interfaces
+{% for host in hw_device_inventory %}
+"{{ host }}", "{{ host[:-2] }}", "{{ host[-2:] }}", "{{ hw_device_inventory[host]['needs_label'] }}", "{{ hw_device_inventory[host]['inventory'] }}", "{{ (hw_device_inventory[host]['vendor'] + " " + hw_device_inventory[host]['type']) | trim }}", "{{ hw_device_inventory[host]['description']}}", "{% for interface in dhcp_config %}{% if interface['dev_name'] == host %}{% if interface['connection'] == "eth" %} [LAN]:{% elif interface['connection'] == "wlan" %} [WLAN]:{% endif %} {{ interface['mac_address'] }}/{{ interface['ip_address'] }} {% endif %}{% endfor %}"
+{% endfor %}
