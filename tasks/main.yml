@@ -35,3 +35,8 @@
   run_once: true
   become: no
   changed_when: false
+
+# - name: Copy ansible.log
+#   connection: local
+#   command: mv /home/schama/log/baikonur/ansible/ansible.log /home/schama/log/baikonur/ansible/ansible.{{ lookup('pipe', 'date +"%Y%M%d-%H%M%S"') }}.log
+#   run_once: true
